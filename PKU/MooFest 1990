@@ -1,0 +1,100 @@
+///________________In THE NAME OF ALLAH________________\\\
+//#include <bits/stdc++.h>
+//#include <bits/stdc++.h>
+#include <string>
+#include <iostream>
+#include <stdio.h>
+#include <string.h>
+#include <cmath>
+#include <complex>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <utility>
+#include <vector>
+using namespace std;
+
+#define all(v)          v.begin(),v.end()
+#define allr(v)         v.rbegin(),v.rend()
+#define rep(i,m)        for(int i=0;i<m;i++)
+#define REP(i,k,m)      for(int i=k;i<m;i++)
+#define repd(i,m)        for(int i=m;i>=0;i--)
+#define P(x)				cout<<#x<<" = { "<<x<<" }\n"
+#define mem(a,b)        memset(a,b,sizeof(a))
+#define mp              make_pair
+#define pb              push_back
+#define SORT(ptr , k )  sort ( ptr , ptr + k );
+#define OO ((ll)1e12)
+#define ooo -100000000
+#define small  INT_MIN;
+#define big  INT_MAX;
+ //#undef to remove macro
+typedef pair<int,int> P;
+
+typedef long long ll;
+
+const int MAX_VAL = 50000;
+pair < ll, int >  BITTree[MAX_VAL] ;
+void add(int idx,int val, int val2)
+{
+    while (idx <= MAX_VAL)
+    {
+        BITTree[idx].second += val2;
+        BITTree[idx].first += val;
+        idx += (idx & -idx)  ;
+    }
+}
+
+pair < ll, int >  getAccum(int idx)
+{
+    int cnt = 0 ;
+    ll sum = 0 ;
+    while (idx > 0 ){
+        cnt += BITTree[idx].second;
+        sum += BITTree[idx].first;
+        idx -= (idx & -idx);
+    }
+    return mp(sum, cnt);
+}
+
+
+
+int main()
+{
+//    freopen("in.txt","r",stdin);
+//    freopen("out.txt","w",stdout);
+  //  ios_base::sync_with_stdio(0);
+//    cin.tie(0);
+
+    ll n, a, b;
+    cin >> n ;
+    ll sum = 0 ;
+    vector < pair < int, int > > v ;
+    for ( int i = 0 ; i < n ; i ++ )
+    {
+        cin >> a >> b ;
+        v.pb(mp(a, b ));
+        sum += b;
+    }
+    sort(allr(v));
+    rep(i, n )
+    add(v[i].second, v[i].second , 1 );
+    ll ans = 0 ;
+    REP(i, 0, n )
+    {
+        pair < ll, int >  u = getAccum(v[i].second);
+        add(v[i].second, -v[i].second, -1); // remove this item 
+        ll y = sum - u.first;
+        u.first -= v[i].second;
+        sum -= v[i].second;
+        y  -=(( n-i) - u.second ) * v[i].second;
+        u.second --;
+        a = (u.second*v[i].second) - u.first  ;
+        // cout << v[i].first << "  " << y <<"  " << a  <<endl;
+        ans += v[i].first * ll( y + a );
+    }
+    cout << ans << endl;
+return 0;
+
+}
+
