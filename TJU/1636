@@ -1,0 +1,212 @@
+// get WA
+#include <bits/stdc++.h>
+#define all(v)          v.begin(),v.end()
+#define allr(v)         v.rbegin(),v.rend()
+#define rep(i,m)        for(int i=0;i<m;i++)
+#define REP(i,k,m)      for(int i=k;i<m;i++)
+#define repd(i,m)        for(int i=m;i>=0;i--)
+#define P(x)                cout<<#x<<" = { "<<x<<" }\n"
+#define mem(a,b)        memset(a,b,sizeof(a))
+#define mp              make_pair
+#define pb              push_back
+#define OO ((ll)1e7)
+#define ooo -100000000
+#define small  INT_MIN;
+#define big  INT_MAX;
+using namespace std;
+typedef long long ll;
+typedef double db;
+typedef long double       ld;
+typedef vector<int>       vi;
+typedef vector<bool>       vb;
+typedef vector<double>    vd;
+typedef vector< vi >      vvi;
+typedef vector< vd >      vvd;
+typedef vector<string>    vs;
+typedef bitset<20> MASK;
+#define INF 10000
+#define sz(v)          ((int)((v).size()))
+//std::ios_base::sync_with_stdio(false); means  i will not deal with c lang that will speed
+const int oo = (int) 1e9;
+const double PI = 2 * acos(0.0);
+const double eps = 1e-7;
+#define pi 1000000007
+#define black 0;
+#define white 1;
+const int MAXN=1e5+10;
+
+int dx[] = {1, 0, 0, -1, -1, -1, 1, 1};
+int dy[] = {0, 1, -1, 0, 1, -1, 1, -1};
+
+/*
+transfer 2D into 1D grid 
+make super source (n*m+m+10) and add edge to every 'H' from super source with cost 0 
+and super sink (n*m+m+20)  and add edge to every 'm' from super sink with cost 0 
+then use  minCostMaxFlow algorithm. 
+*/
+
+
+
+
+
+
+int n, m ;
+bool valid (int a, int b )
+{
+    return a < n && b < m && a >= 0 && b >=0 ;
+}
+struct edge
+{
+    int from, to, w;
+
+    edge(int from, int to, int w): from(from), to(to), w(w) {}
+
+    bool operator < (const edge & e) const
+    {
+        return w > e.w;	// STL priority_queue need it > , or modify data -ve, or use paprmeter less
+    }
+};
+
+bool BellmanPrcoessing(vector<edge> & edgeList, int n, vi &dist, vi &prev, vi &pos)
+{
+    if(sz(edgeList) == 0)	return false;
+
+    for (int it = 0, r = 0; it < n+1; ++it, r = 0)
+    {
+        for (int j = 0; j < sz(edgeList) ; ++j)
+        {
+            edge ne = edgeList[j];
+            if(dist[ne.from] >= OO || ne.w >= OO)	continue;
+            if( dist[ne.to] > dist[ne.from] + ne.w )
+            {
+                dist[ne.to] = dist[ne.from] + ne.w;
+                prev[ ne.to ] = ne.from, pos[ ne.to ] = j, r++;
+
+                if(it == n)		return true;
+            }
+        }
+        if(!r)	break;
+    }
+    return false;
+}
+
+vi buildPath(vi prev, int src)
+{
+    vi path;	// make sure to test case self edge. E.g. 2 --> 2
+    for (int i = src; i > -1 && sz(path) <= sz(prev); i = prev[i])
+        path.push_back(i);
+    reverse( all(path) );
+    return path;
+}
+
+pair<vi, vi> BellmanFord(vector<edge> & edgeList, int n, int src, int dest)	// O(NE)
+{
+    vi dist(n*m+m+21, OO), prev(n*m+m+21, -1), reachCycle(n*m+m+21), path, pos(n*m+m+21);	// To use pos: edgeList[pos[path[i]]].w
+    dist[src] = 0;
+
+    bool cycle = BellmanPrcoessing(edgeList, n, dist, prev, pos);
+
+    if(cycle)
+    {
+        vi odist = dist;
+        BellmanPrcoessing(edgeList, n, dist, prev, pos);
+        for (int i = 0; i < n; ++i)	// find all nodes that AFFECTED by negative cycle
+            reachCycle[i] = (odist[i] != dist[i]);
+    }
+    else
+        path = buildPath(prev, dest);
+
+    return make_pair(dist, path);
+}
+
+pair<int, int> mcmf(vector< vector < pair < int, int > > > capMax, vector< vector<pair < int, int > > > & costMax, int src, int dest)
+{
+    int maxFlow = 0, minCost = 0;
+    while(true)
+    {
+        vector<edge> edgeList;
+        rep( i, n*m+m+21 )
+        rep(j, sz(capMax[i]))
+        if(capMax[i][j].second  > 0 )
+            edgeList.push_back( edge(i, capMax[i][j].first, costMax[i][j].second ) );
+
+
+        pair<vi, vi> p = BellmanFord(edgeList, sz(capMax), src, dest);
+        if(p.first[dest] <= -OO || p.first[dest] >= +OO)	break;
+
+        int bottleNeck = OO;
+        rep(i, sz(p.second)-1 )
+        {
+            int f = p.second[i], t = p.second[i+1];
+            rep( k, sz(capMax[f]))
+            if (capMax[f][k].first == t )
+            {
+                //	cout << f << " " << t << "  "<<capMax[f][t].second<<endl;
+                bottleNeck = min(bottleNeck, capMax[f][k].second );
+                break;
+            }
+        }
+
+        rep(i, sz(p.second)-1 )
+        {
+            int f = p.second[i], t = p.second[i+1];
+            rep( k, sz(capMax[f]))
+            if (capMax[f][k].first == t )
+            {
+                minCost += bottleNeck * costMax[f][k].second;
+                capMax[f][k].second -= bottleNeck;
+                rep (l, sz(capMax[t]))
+                if (capMax[t][l].first == f )
+                {
+                    capMax[t][l].second += bottleNeck;
+                    break;
+                }
+                break;
+            }
+        }
+        maxFlow += bottleNeck;
+    }
+    return make_pair(maxFlow, minCost);
+
+}
+int main ()
+{
+    vector < vector <pair <int, int  > > >  cap, cost;
+
+    string grid[109];
+    while(cin >> n >> m )
+    {
+
+        if ( n == 0 && m == 0 ) break;
+        rep(i, n ) cin >> grid[i];
+        cap.clear();
+        cost.clear();
+        cap.resize(n*m+m+21);
+        cost.resize(n*m+m+21);
+        rep( i, n )
+        rep( j, m )
+        rep(k, 4 )
+        {
+            int x = i + dx[k];
+            int y = j + dy[k];
+            if (valid (x,y))
+            {
+                int cos = OO ;
+                if (grid[i][j] == 'H' && grid[x][y] == 'm' )
+                    cos = 1 ;
+
+                cap[i*m+j].pb({x*m+y, cos});
+
+                cost[i*m+j].pb({x*m+y, 1});
+            }
+        }
+
+        rep( i, n )
+        rep( j, m )
+        if (grid[i][j] == 'H')
+            cap[n*m+m+10].pb({i*m+j, 1}), cost[n*m+m+10].pb({i*m+j, 0});
+        else if (grid[i][j] == 'm')
+            cap[i*m+j].pb({n * m + m +20, 1 }), cost[i*m+j].pb({n * m + m +20, 0 });
+        cout << mcmf(cap, cost,n*m+m+10,n*m+m+20).second << endl ;
+    }
+}
