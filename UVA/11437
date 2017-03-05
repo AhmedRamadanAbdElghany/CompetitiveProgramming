@@ -1,0 +1,142 @@
+#include <bits/stdc++.h>
+#define all(v)          v.begin(),v.end()
+#define allr(v)         v.rbegin(),v.rend()
+#define rep(i,m)        for(int i=0;i<m;i++)
+#define REP(i,k,m)      for(int i=k;i<m;i++)
+#define repd(i,m)        for(int i=m;i>=0;i--)
+#define P(x)                cout<<#x<<" = { "<<x<<" }\n"
+#define mem(a,b)        memset(a,b,sizeof(a))
+#define mp              make_pair
+#define pb              push_back
+#define OO ((ll)1e12)
+#define ooo -100000000
+#define small  INT_MIN;
+#define big  INT_MAX;
+using namespace std;
+typedef long long ll;
+typedef double db;
+typedef long double       ld;
+typedef vector<int>       vi;
+typedef vector<bool>       vb;
+typedef vector<double>    vd;
+typedef vector< vi >      vvi;
+typedef vector< vd >      vvd;
+typedef vector<string>    vs;
+typedef bitset<20> MASK;
+#define INF 10000
+#define sz(v)          ((int)((v).size()))
+const int oo = (int) 1e9;
+const double PI  = acos(-1.0);
+
+typedef complex<double> point;
+
+#define X real()
+#define Y imag()
+#define angle(a)                (atan2((a).imag(), (a).real()))
+#define vec(a,b)                ((b)-(a))
+#define same(p1,p2)             (dp(vec(p1,p2),vec(p1,p2)) < EPS)
+#define dp(a,b)                 ( (conj(a)*(b)).real() )	// a*b cos(T), if zero -> prep
+#define cp(a,b)                 ( (conj(a)*(b)).imag() )	// a*b sin(T), if zero -> parllel
+#define length(a)               (hypot((a).imag(), (a).real()))
+#define normalize(a)            (a)/length(a)
+//#define polar(r,ang)            ((r)*exp(point(0,ang)))  ==> Already added in c++11
+#define rotateO(p,ang)          ((p)*exp(point(0,ang)))
+#define rotateA(p,ang,about)  (rotateO(vec(about,p),ang)+about)
+#define reflectO(v,m)  (conj((v)/(m))*(m))
+const double eps = 1e-7;
+using namespace std;
+const double EPS = 1e-9;
+
+
+
+/*
+
+the problem need the area of the inner triangle .
+find every intersecting point (F,D,E) for AB  vec(A,B) / 3 + A and so on for BC and CA.
+then find the intersection point of the inner triangle using  intersectSegments( , , , , ).
+find area using area ( , , ).
+
+*/
+
+
+
+int dcmp(db a, db b )
+{
+    return fabs( a - b ) <= EPS ? 0 : a < b ? -1 : 1 ;
+}
+
+bool isPointOnSegment(point a, point b, point c)
+{
+    double acb = length(a-b), ac = length(a-c), cb = length(b-c);
+
+    return dcmp(acb-(ac+cb), 0) == 0;
+}
+
+
+bool intersectSegments(point a, point b, point c, point d, point &intersect )
+{
+    double d1 = cp(a - b, d - c), d2 = cp(a - c, d - c), d3 = cp(a - b, a - c);
+    if (fabs(d1) < EPS)
+    {
+
+        double w =  length(a-b), q = length(c - d );
+        if (w < q )
+            swap(a, c ), swap(b, d );
+        if(isPointOnSegment(a, b, c ) || isPointOnSegment(a, b, d ))
+            return 1 ;
+        return false;
+    }
+    double t1 = d2 / d1, t2 = d3 / d1;
+    intersect = a + (b - a) * t1;
+    if ( t1 < -EPS || t1 > 1 + EPS || t2 < -EPS || t2 > 1 + EPS)
+        return false;
+    return true;
+}
+
+db area(point P, point Q, point R )
+{
+
+    db a = length(P - Q ),b = length(P - R),c = length(Q - R );
+
+    db s = ( a + b + c )/ 2 ;
+    return sqrt((s - a ) * ( s - b ) * (s - c ) * s );
+}
+
+
+int main()
+{
+
+    double a, b;
+    int n;
+
+    scanf("%d",&n);
+
+    while (n--)
+    {
+
+        cin >> a >> b ;
+        point A(a, b );
+        cin >> a >> b ;
+        point B(a, b );
+        cin >> a >> b ;
+        point C(a, b );
+
+        point rr = vec(A , B )/3.0;
+        point F = A + rr ;
+
+
+        rr = vec( B, C )/3.0;
+        point D = B + rr ;
+        rr = vec(C, A )/3.0;
+        point E = C + rr ;
+
+        point R, P, Q ;
+        intersectSegments(A, D, C, F, R );
+        intersectSegments(A, D, B, E,P  );
+        intersectSegments(B, E, C, F, Q );
+
+        db ans =  area(P, Q, R ) ;
+        printf("%.0f\n", ans);
+
+    }
+}
