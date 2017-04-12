@@ -52,7 +52,7 @@ const double eps = 1e-7;
 #define reflectO(v,m)  (conj((v)/(m))*(m))
 /*
 given n points in space find line with maximum number of points .
-then for each point find slop with other points then points with the same slopes are considered on the same line .
+each line is determined be two points then for each point find slop with other points then points with the same slopes are considered on the same line .
 */
 
 
