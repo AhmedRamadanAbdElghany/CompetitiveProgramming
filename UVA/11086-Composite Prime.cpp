@@ -52,9 +52,9 @@ const double eps = 1e-7;
 #define reflectO(v,m)  (conj((v)/(m))*(m))
 
 /*
-given n numbers find number of composite numbers .
-composite number have two primes divisors only .
-so for every number count number of divisors if exceeds 2 then the number not composite .
+given n numbers find number of composite prime numbers .
+composite prime number have two primes divisors only .
+so for every number count number of divisors if exceeds 2 then the number not composite prime .
 */
 
 
