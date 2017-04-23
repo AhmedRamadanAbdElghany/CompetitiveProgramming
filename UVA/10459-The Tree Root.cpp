@@ -52,6 +52,14 @@ const double eps = 1e-7;
 const int MAXN=1e5+10;
 int dx[] = {1, 0, 0, -1, -1, -1, 1, 1};
 int dy[] = {0, 1, -1, 0, 1, -1, 1, -1};
+/*
+we want to find best nodes to be the root and worst nodes .
+so first find the diameter of the tree and if the diameter is odd then we have 2 nodes can be best root else we have one root .
+from these best nodes find the furthest nodes and it will be the worst nodes.
+
+*/
+
+
 int par[6000];
 int vis[6000];
 vector < vi > adj;
