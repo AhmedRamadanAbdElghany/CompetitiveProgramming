@@ -50,14 +50,12 @@ const double eps = 1e-7;
 #define black 0;
 #define white 1;
 const int MAXN=1e5+10;
-int dx[] = {1, 0, 0, -1, -1, -1, 1, 1};
-int dy[] = {0, 1, -1, 0, 1, -1, 1, -1};
+int dx[] = {1, 0, -1, 0, -1, -1, 1, 1};
+int dy[] = {0, 1, 0,-1,  1, -1, 1, -1};
 /*
 the problem consist of some connected town and need to connect all component with minimum number of edges and if there are a tie take the minimum cost .
 so lets find the all connected component and find all edges between every two component .
 then using kruskal to find sum with minimum cost .
-
-
 */
 
 
@@ -91,7 +89,10 @@ bool union_set(int a, int b )
 
 
 
-
+bool valid2 (int a, int b )
+{
+    return a >= 0 && b >= 0 && a < n && b < m ;
+}
 
 bool valid (int a, int b )
 {
@@ -108,15 +109,12 @@ void dfs(int a, int b, int num )
     }
 }
 
-
 int main()
 {
     int tc = 1 ;
 
-    vector< vector < pair < int, int >  > > edges ;
-    vector < vector < pair < int, int > > > comp;
-
-    priority_queue < pair < int, pair <int, int > > > pq;
+    vector<pair < int,  pair < int, int > > > edges ;
+    set < int > SS;
     while( cin >> n >> m )
     {
         if ( n == 0 && m == 0 ) break ;
@@ -130,82 +128,53 @@ int main()
         rep( i, n )
         rep( j, m )
         if (vis[i][j] == 0 && adj[i][j] == '#')
-            dfs(i, j,cnt++ );  // mark every connected component with color .
+            dfs( i, j, cnt++ );    // mark every connected component with color .
 
         edges.clear();
-        edges.resize(cnt+2);
-        comp.clear();
-        comp.resize(cnt+2);
+        edges.resize(cnt-1);
 
 
-        rep(i, n )
-        rep( j, m )
-        if ( vis[i][j] )
-            comp[vis[i][j]].pb({i, j }); // find nodes of every component .
-
-        rep( i, n-1 ) // find nodes in the next row that adjacent to the node in the current row .  
-        rep( j, m )
-        rep(k, m)
-        if (vis[i][j] && vis[i+1][k] && vis[i][j] != vis[i+1][k])
+        rep(i,n)
+        rep(j,m)
+        if (adj[i][j] == '#')
         {
-            a = vis[i][j], b = vis[i+1][k] ;
-            edges[a].pb({b,  abs(k - j ) -1 });
-            edges[b].pb({a,  abs(k - j ) -1 });
-
-        }
-
-        rep( i, m-1 )   // find nodes in the next column that adjacent to the node in the current column  .
-        rep( j, n )
-        rep(k,  n )
-        if (vis[j][i] &&vis[k][i+1]&& vis[j][i] != vis[k][i+1])
-        {
-            a = vis[j][i] ;
-            b = vis[k][i+1];
-            edges[a].pb({b,  abs(k - j ) -1 });
-            edges[b].pb({a,  abs(k - j ) -1 });
-//            cout << a << " " << b << " "<< abs(k-j)-1 << endl;
-        }
-        
-        rep( i, n ) // find nodes in the same row  .
-        {
-            int last = -1 ;
-            rep( j, m )
-            if (vis[i][j] )
-                if (last == -1 )
-                    last = vis[i][j], a = j ;
-                else
+            rep( k, 4 )
+            {
+                int  ni = i, nj = j,nni, nnj ;
+                while ( valid2(ni + dx[k], nj + dy[k] ) ) // move in a straight line from that cell .
                 {
-                    if (vis[i][j] != last )
+                    ni += dx[k] ;
+                    nj += dy[k];
+                    if ( adj[ni][nj] == '#' )
                     {
-                        int aa = last, b = vis[i][j];
-                        edges[aa].pb({b,  abs(a  - j ) -1 });
-                        edges[b].pb({aa, abs(a - j ) -1 });
-                        //                 cout << aa << " " << b << " "<< abs(a-j)-1 << endl;
+                        if( vis[i][j] != vis[ni][nj] )
+                            edges.push_back({abs(i - ni) + abs(j- nj) - 1,{vis[i][j],vis[ni][nj]}});
                     }
-                    last = vis[i][j], a = j ;
-                }
-        }
- 
-        rep( i, m ) // find nodes in the same column .
-        {
-            int last = -1 ;
-            rep( j, n )
-            if (vis[j][i] )
-                if (last == -1 )
-                    last = vis[j][i], a = j ;
-                else
-                {
-                    if (vis[j][i] != last )
+                    rep(l, 4 )
+                    if ((k%2) != (l%2)) // if you move in x axis move one step in y axis toward and backward .
                     {
-                        int aa = last, b = vis[j][i];
-                        edges[aa].pb({b,  abs(a  - j ) -1 });
-                        edges[b].pb({aa, abs(a - j ) -1 });
-                        //               cout << aa << " " << b << " " << abs(a - j ) -1 << endl;
+                        nni = dx[l] + ni ;
+                        nnj = dy[l] + nj ;
+
+                        if (valid2(nni, nnj ))
+                        {
+                            if ( adj[nni][nnj] == '#')
+                            {
+                                if(vis[i][j] !=  vis[nni][nnj] )
+                                    edges.push_back({abs(i - nni)+ abs(j - nnj) - 2, {(vis[i][j],vis[nni][nnj]}});
+                            }
+                        }
                     }
-                    last = vis[j][i], a = j ;
                 }
+            }
         }
- 
+        sort(all(edges));
+
+
+
+
+
+
         cout << "City "<<tc++ << endl;
         if (cnt <= 2 )
             cout << "No bridges are needed." << endl;
@@ -215,17 +184,15 @@ int main()
             par[i] = i ;
             int ans = 0 ;
             int sum = 0 ;
-            rep(i, cnt )
-            rep( j, sz(edges[i]))
-            pq.push({-(edges[i][j].second), {i, edges[i][j].first }}); // find minimum spanning tree 
-            while(pq.empty() == 0 )
+            for (auto i : edges )
             {
-                pair < int, pair <int, int > > cur = pq.top();
-                pq.pop();
-                if(union_set(cur.second.first, cur.second.second ) == 0 )
-                    //cout << cur.second.first << "  " << cur.second.second << "  " << cur.first << endl ,
-                    ans++, sum += -cur.first;
+                int from = i.second.first ;
+                int to = i.second.second ;
+                int cost = i.first ;
+                if (union_set(from, to ) == 0 )
+                    sum += cost, ans++ ;
             }
+
 
             if(ans == 0 )
                 cout << "No bridges are possible." << endl;
@@ -240,16 +207,15 @@ int main()
             }
             rep(i, cnt )
             find_parent(i);
-            ans= 1;
-            REP(i,1, cnt )
-            if(par[1] != par[i] )
-                ans++;
-            if(ans > 1 )
-                cout << ans << " disconnected groups" << endl;
+            SS.clear();
+            REP(i, 1, cnt )
+            SS.insert( par[i] );
+
+            if (sz(SS) > 1 )
+                cout << sz(SS) << " disconnected groups" << endl;
+
+
 
         }
-
     }
 }
-
-
